@@ -1,0 +1,8 @@
+pypdf
+python-docx
+google-genai
+python-dotenv
+pytest
+reportlab
+tqdm
+jupyter

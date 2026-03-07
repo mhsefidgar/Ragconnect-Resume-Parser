@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resume_parser_project"
+version = "0.1.0"
+description = "A pluggable framework for parsing resumes from PDF and DOCX files."
+authors = [{name = "Developer", email = "dev@example.com"}]
+dependencies = [
+    "pypdf",
+    "python-docx",
+    "google-genai",
+    "python-dotenv",
+    "tqdm",
+    "reportlab"
+]
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
