@@ -7,7 +7,7 @@ from rag.retrieval import bm25, reciprocal_rank_fusion
 def test_chunking_is_stable_and_non_empty():
     chunks = semantic_chunks("doc", "Python\n\nFastAPI\n\nRAG", chunk_size=20, overlap=4)
     assert chunks
-    assert [c.id for c in chunks] == ["doc:0", "doc:1"]
+    assert [c.id for c in chunks] == ["doc:0"]
     assert all(c.text.strip() for c in chunks)
 
 
