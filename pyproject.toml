@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "resume_parser_project"
-version = "0.1.0"
-description = "A pluggable framework for parsing resumes from PDF and DOCX files."
-authors = [{name = "Developer", email = "dev@example.com"}]
+name = "ragconnect-resume-parser"
+version = "0.2.0"
+description = "Production-oriented document ingestion and retrieval foundation for RAG systems."
+authors = [{name = "Mohammad Sefidgar"}]
 dependencies = [
     "pypdf",
     "python-docx",
