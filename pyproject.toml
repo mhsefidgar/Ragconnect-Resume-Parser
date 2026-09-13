@@ -1,22 +1,27 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragconnect-resume-parser"
-version = "0.2.0"
+version = "0.2.1"
 description = "Production-oriented document ingestion and retrieval foundation for RAG systems."
-authors = [{name = "Mohammad Sefidgar"}]
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Mohammad Sefidgar" }]
 dependencies = [
     "pypdf",
     "python-docx",
     "google-genai",
     "python-dotenv",
     "tqdm",
-    "reportlab"
+    "reportlab",
 ]
-requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["pytest"]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
-python_files = "test_*.py"
+python_files = ["test_*.py"]
