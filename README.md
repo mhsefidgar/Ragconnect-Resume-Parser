@@ -1,107 +1,120 @@
-# Resume Parsing Framework
+# RAGConnect Resume Parser
 
-A pluggable, object-oriented Python framework for extracting structured information (Name, Email, Skills) from PDF and Word resumes.
+**Production-oriented document intelligence and retrieval foundation for senior-level RAG engineering.**
 
-## Features
+This project started as a pluggable PDF/DOCX resume parser and is being evolved into a modular RAG platform. The codebase separates **ingestion, chunking, retrieval, evaluation, and generation** so retrieval quality can be measured independently from the LLM.
 
-- **Multi-format Support**: Parses `.pdf` and `.docx` files.
-- **Pluggable Architecture**: Easily add new parsers or field extractors.
-- **Hybrid Extraction**:
-  - **Regex**: For deterministic fields like Email.
-  - **Heuristics**: For Name extraction.
-  - **LLM (Gemini)**: For complex Skills extraction.
-- **Robustness**: Validation for API keys and text length.
+## Why this project
 
-## Project Structure
+A senior AI engineer portfolio should demonstrate more than calling an LLM. This repository focuses on the engineering problems that determine whether RAG works in production:
 
+- deterministic document ingestion
+- stable chunk IDs and metadata
+- retrieval baselines that can be evaluated reproducibly
+- explicit citations and provenance
+- retrieval metrics such as Recall@K and MRR
+- clean interfaces for replacing local baselines with vector search, rerankers, and hosted models
+- automated tests around the retrieval pipeline
+
+## Architecture
+
+```text
+PDF / DOCX / Markdown
+        |
+        v
+  Document Ingestion
+        |
+        v
+   Chunking + Metadata
+        |
+        +-------------------+
+        |                   |
+        v                   v
+   Lexical Search     Dense Retrieval
+        |                   |
+        +--------+----------+
+                 v
+          Hybrid / Rerank
+                 |
+                 v
+        Context Filtering
+                 |
+                 v
+          LLM Generation
+                 |
+                 v
+       Answer + Citations
+                 |
+                 v
+      Evaluation / Tracing
 ```
-resume_parser/
-├── models.py                   # Data Model (ResumeData)
-├── resume_parser/
-│   ├── interfaces.py           # Abstract Base Classes
-│   ├── pdf_parser.py           # PDF Parser
-│   ├── word_parser.py          # Word Parser
-│   ├── extractors.py           # Logic for extracting fields
-│   └── framework.py            # Main Coordinator
-├── utils/                      # Helper utilities
-├── tests/                      # Unit and Speed tests
-├── sample_resumes/             # Sample data
-└── main.py                     # CLI Entry point
+
+The current branch includes a dependency-free lexical retrieval baseline and deterministic evaluation primitives. This is intentional: it gives the project a reproducible foundation before adding infrastructure such as PostgreSQL/pgvector, Redis, reranking, and hosted embeddings.
+
+## Current capabilities
+
+### Document foundation
+- PDF and DOCX parsing from the original framework.
+- Pluggable parser/extractor interfaces.
+- Deterministic semantic/paragraph-aware chunking with stable IDs.
+- Metadata attached to every chunk for future provenance and filtering.
+
+### Retrieval
+- Reproducible lexical retrieval baseline.
+- Ranked `RetrievedChunk` domain model.
+- Designed for extension to BM25, dense vector search, hybrid retrieval, and cross-encoder reranking.
+
+### Evaluation
+- Recall@K.
+- Reciprocal Rank / MRR.
+- Test fixtures for chunking and retrieval.
+- Retrieval metrics are intentionally independent of the generation model.
+
+## Roadmap
+
+- [ ] Embedding provider interface + batch embedding
+- [ ] PostgreSQL + pgvector backend
+- [ ] BM25 + dense hybrid retrieval
+- [ ] Cross-encoder reranking
+- [ ] Page/section-level citations
+- [ ] RAG answer generation with structured output
+- [ ] Faithfulness, answer relevance, and context relevance evaluation
+- [ ] Offline evaluation dataset and experiment reports
+- [ ] FastAPI `/ingest`, `/retrieve`, and `/query` APIs
+- [ ] Redis-backed job queue and durable task state
+- [ ] OpenTelemetry/Langfuse tracing and token/cost tracking
+- [ ] Docker + GitHub Actions CI
+- [ ] Authentication, rate limiting, and tenant isolation
+- [ ] Retrieval/latency/cost benchmark dashboard
+
+## Engineering principles
+
+1. **Measure retrieval before tuning prompts.**
+2. **Keep ingestion, retrieval, generation, and evaluation independently testable.**
+3. **Make provenance a first-class data model.**
+4. **Prefer typed contracts over implicit dictionaries.**
+5. **Keep provider-specific code behind interfaces.**
+6. **Treat latency, cost, and failure modes as production metrics.**
+
+## Local development
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pytest
 ```
 
-## Setup
+The original resume parsing CLI remains available:
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   Or   
-   ```bash
-   pip install -e .
-   ```
-
-1. **Configure Environment**
-   - Configure the `.env` file.
-   - Add your [Google Gemini API Key](https://aistudio.google.com/app/apikey).
-   ```text
-   GEMINI_API_KEY=AIzaSy...
-   ```
-
-2. **Generate Sample Data** (Optional)
-   The framework includes a script to generate dummy resumes for testing.
-   ```bash
-   python create_samples.py
-   ```
-
-## Usage
-
-### Command Line Interface
-Run the tool on any resume file:
 ```bash
 python main.py sample_resumes/sample.pdf
 ```
 
-### Python API
-```python
-from resume_parser.framework import ResumeParserFramework
+## Portfolio positioning
 
-framework = ResumeParserFramework()
-data = framework.parse_resume("path/to/resume.pdf")
+This repository is intended to demonstrate **RAG/retrieval engineering**, complementing a computer-vision production project and an agentic AI project. The target outcome is a system where an interviewer can inspect not only the LLM call, but also the retrieval algorithm, evaluation methodology, provenance model, testing strategy, and production roadmap.
 
-print(data.name)
-print(data.skills)
-```
-**Convert the ResumeData object to a json object**
+## License
 
-```python
-from utils import parse_to_json
-
-json_results = parse_to_json.convert_to_json(result_word)
-print(json_results)
-```
-**Save a ResumeData object to a path as a json file**
-
-```python
-json_file_name = "WordJson.json"
-if os.path.exists(json_path):
-  parse_to_json.save_resume_json(result_pdf, json_path + '/'+ json_file_name) 
-  print(f"JSON file saved to {json_path}")
-```
-
-## Testing
-
-Run all unit tests:
-```bash
-python tests/run_all_tests.py
-```
-
-Run speed benchmarks (requires generated samples):
-```bash
-python tests/test_speed.py
-```
-
-## Design Decisions
-- **Separation of Concerns**: Parsers handle *reading* files, Extractors handle *understanding* text.
-- **Interfaces**: `FileParser` and `FieldExtractor` allow for easy extension (e.g., adding an OCR parser or a BERT-based extractor).
-- **LLM for Skills**: Skills are unstructured and variable. LLMs provide the best flexibility compared to keyword matching.
-
+MIT
